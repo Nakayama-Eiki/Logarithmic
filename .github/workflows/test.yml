@@ -1,4 +1,4 @@
-name: Test Log Calculator
+name: Log Calculator Tests
 
 on:
   push:
@@ -17,25 +17,23 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4 
 
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
         
     
-    - name: Grant execution permission to Python script
-      run: chmod +x ./log_calc.py
-      
-      
-    - name: Grant execution permission to Test script
-      run: chmod +x ./test.bash
-
-    - name: Run ALL Log Calculator tests
-      
-      run: bash -xv ./test.bash
+    - name: Grant execution permission
+      run: |
+        chmod +x ./log_calc.py
+        chmod +x ./test.bash
+        
+    
+    - name: Run Log Calculator tests
+      run: bash ./test.bash
