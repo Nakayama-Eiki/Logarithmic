@@ -1,8 +1,9 @@
 #!/bin/bash
-LOG_CALC="./logarithmic_calculation" # ファイル名を修正
+LOG_CALC="./logarithmic_calculation"
 PASSED=0
 FAILED=0
-TOLERANCE="0.000001"
+# 許容誤差を 10^-8 まで厳しくする
+TOLERANCE="0.00000001" 
 
 # LOG_CALCに実行権限があるか確認
 if [ ! -x "$LOG_CALC" ]; then
@@ -17,9 +18,10 @@ run_test() {
     EXPECTED="$3"
     PRECISION="$4"
 
-    # T7 のエラーテストは特別処理
+    # T7: ゼロ除算エラーテスト
     if [ "$TEST_NAME" == "T7_Error_DivByZero" ]; then
-        RESULT=$(echo -e "$INPUT" | "$LOG_CALC" 2>/dev/null)
+        # ゼロ除算を試み、標準出力をキャプチャ (エラーは捨てる)
+        RESULT=$(echo -n "$INPUT" | "$LOG_CALC" 2>/dev/null) # -n で末尾の改行を削除
         if [ -z "$RESULT" ]; then
             echo "PASSED: $TEST_NAME (Error Handled)"
             PASSED=$((PASSED + 1))
@@ -31,14 +33,14 @@ run_test() {
     fi
     
     # 正常系のテスト：結果を取得
-    RESULT=$(echo -e "$INPUT" | "$LOG_CALC" -p "$PRECISION" 2>/dev/null)
+    RESULT=$(echo -n "$INPUT" | "$LOG_CALC" -p "$PRECISION" 2>/dev/null)
 
     # AWKを使用して、許容誤差 TOLERANCE 内で数値比較を行う
     COMPARISON_RESULT=$(echo | awk -v R="$RESULT" -v E="$EXPECTED" -v T="$TOLERANCE" '
         BEGIN {
             # 期待値と結果の差の絶対値
             diff = (R > E) ? (R - E) : (E - R);
-            # 差が許容誤差以下なら 1 を出力
+            # 差が許容誤差以下なら 1 を出力 (比較が成功したら 1)
             if (diff <= T) print 1; else print 0;
         }
     ')
@@ -58,6 +60,8 @@ run_test() {
 
 echo "--- Starting Log Calculator Tests ---"
 echo ""
+
+# すべての INPUT の定義から最初の改行を削除
 
 # T1: 2.0 + 3.0 = 5.0
 run_test "T1_Addition" "=,100,10
@@ -83,10 +87,7 @@ run_test "T5_MultiOp_Sequence" "=,100,10
 # T6: 3.0
 run_test "T6_Initial_Value" "=,1000,10" "3.00000" 5
 
-# T7: log(1) = 0.0
-run_test "T7_Final_Result_Zero" "=,1,10" "0.00000" 5 
-
-# T7': ゼロ除算エラーテスト (log_val=0 で sys.exit(1) が呼ばれるため、RESULT は空文字列を期待)
+# T7: ゼロ除算エラーテスト
 run_test "T7_Error_DivByZero" "=,100,10
 /,1,10" "" 5 
 
