@@ -5,10 +5,9 @@ FAILED=0
 # 許容誤差を 10^-8 まで厳しくする
 TOLERANCE="0.00000001" 
 
-# LOG_CALCに実行権限があるか確認
-if [ ! -x "$LOG_CALC" ]; then
-    echo "Error: $LOG_CALC is not executable." >&2
-    echo "Please ensure you run: chmod +x $LOG_CALC" >&2
+# test.bash自体の実行権限は必要なので、ファイル参照のチェックは残す
+if [ ! -f "$LOG_CALC" ]; then
+    echo "Error: Python script $LOG_CALC not found." >&2
     exit 1
 fi
 
@@ -20,8 +19,8 @@ run_test() {
 
     # T7: ゼロ除算エラーテスト
     if [ "$TEST_NAME" == "T7_Error_DivByZero" ]; then
-        # ゼロ除算を試み、標準出力をキャプチャ (エラーは捨てる)
-        RESULT=$(echo -n "$INPUT" | "$LOG_CALC" 2>/dev/null) # -n で末尾の改行を削除
+        # Python3 コマンドで明示的に実行
+        RESULT=$(echo -n "$INPUT" | python3 "$LOG_CALC" 2>/dev/null)
         if [ -z "$RESULT" ]; then
             echo "PASSED: $TEST_NAME (Error Handled)"
             PASSED=$((PASSED + 1))
@@ -33,7 +32,8 @@ run_test() {
     fi
     
     # 正常系のテスト：結果を取得
-    RESULT=$(echo -n "$INPUT" | "$LOG_CALC" -p "$PRECISION" 2>/dev/null)
+    # Python3 コマンドで明示的に実行
+    RESULT=$(echo -n "$INPUT" | python3 "$LOG_CALC" -p "$PRECISION" 2>/dev/null)
 
     # AWKを使用して、許容誤差 TOLERANCE 内で数値比較を行う
     COMPARISON_RESULT=$(echo | awk -v R="$RESULT" -v E="$EXPECTED" -v T="$TOLERANCE" '
@@ -60,8 +60,6 @@ run_test() {
 
 echo "--- Starting Log Calculator Tests ---"
 echo ""
-
-# すべての INPUT の定義から最初の改行を削除
 
 # T1: 2.0 + 3.0 = 5.0
 run_test "T1_Addition" "=,100,10
