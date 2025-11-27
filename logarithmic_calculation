@@ -1,0 +1,58 @@
+#!/usr/bin/python3
+# SPDX-FileCopyrightText: 2025 Eiki Nakayama <qwertyuiop1103566@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-only
+
+import sys
+import math
+import argparse
+
+def get_base(s):
+    if s.lower() == 'e': return math.e
+    v = float(s)
+    if v <= 0 or v == 1: raise ValueError("Base invalid.")
+    return v
+
+def main():
+    p = argparse.ArgumentParser(description='Multi-operator log calculator.', epilog='Format: OP,ARG,BASE')
+    p.add_argument('-p', '--precision', type=int, default=6, help='Decimal precision.')
+    
+
+    p.add_argument('UNUSED', nargs='?', help='Placeholder.') 
+    
+    args = p.parse_args()
+    
+    res = None
+    
+    for line in sys.stdin:
+        parts = line.strip().replace(',', ' ').split()
+        if len(parts) != 3: continue 
+        
+        try:
+            op, arg, base = parts[0], float(parts[1]), get_base(parts[2])
+            
+            if arg <= 0: continue
+            
+            log_val = math.log(arg) / math.log(base)
+            
+            if res is None:
+                if op not in ('=', '+', '-'): op = '='
+                res = log_val
+                continue
+            
+            if op == '+': res += log_val
+            elif op == '-': res -= log_val
+            elif op == '*': res *= log_val
+            elif op == '/':
+                if log_val == 0: sys.stderr.write("Error: Division by zero.\n"); sys.exit(1)
+                res /= log_val
+            
+        
+        except (ValueError, IndexError) as e:
+            sys.stderr.write(f"[Warning] Skipped: {e}\n")
+
+    if res is None: sys.stderr.write("Error: No input.\n"); sys.exit(1)
+
+    print(f"{res:.{args.precision}f}")
+
+if __name__ == "__main__":
+    main()
