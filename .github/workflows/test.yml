@@ -1,12 +1,41 @@
-name: test
-on: push
+name: Test Log Calculator
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    
+    
     strategy:
       matrix:
         python-version: ["3.7", "3.8", "3.9", "3.10"]
+        
     steps:
     - uses: actions/checkout@v3
-    - name: ALL test
+
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    
+    - name: Grant execution permission to Python script
+      run: chmod +x ./log_calc.py
+      
+      
+    - name: Grant execution permission to Test script
+      run: chmod +x ./test.bash
+
+    - name: Run ALL Log Calculator tests
+      
       run: bash -xv ./test.bash
