@@ -31,7 +31,7 @@ jobs:
     
     - name: Grant execution permission
       run: |
-        chmod +x ./log_calc.py
+        chmod +x ./logarithmic_calculation
         chmod +x ./test.bash
         
     
