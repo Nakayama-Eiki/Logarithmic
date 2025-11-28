@@ -12,9 +12,9 @@ $git clone git@github.com:Nakayama-Eiki/Logarithmic.git
 
 $chmod +x logarithmic_calculation
 
-$echo -e "演算子,真数,底\n演算子,真数,底\n..." | ./log_calc -p 桁数
+$echo -e "演算子,真数,底\n演算子,真数,底\n..." | ./logarithmic_calculation -p 桁数
 
-$echo -e "=,3.2,6.7\n*,58,36\n-,7.53,e" | ./log_calc -p 4
+$echo -e "=,3.2,6.7\n*,58,36\n-,7.53,e" | ./logarithmic_calculation -p 4
 
 -1.3260
 ```
