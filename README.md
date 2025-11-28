@@ -13,11 +13,15 @@ $git clone git@github.com:Nakayama-Eiki/Logarithmic.git
 $chmod +x logarithmic_calculation
 
 $echo -e "演算子,真数,底\n演算子,真数,底\n..." | ./log_calc -p 桁数
+
+$echo -e "=,3.2,6.7\n*,58,36\n-,7.53,e" | ./log_calc -p 4
+
+-1.3260
 ```
 ## *使用の際の注意点*
 - 入力する真数と底の中に演算子は入れないでください
-- デフォルトで出力される桁数は小数第6位までです。 
-
+- デフォルトで出力される桁数は小数第6位までです． 
+- 最初の演算子は必ず"="にしてください．
 
 ## *必要なソフトウェア*
 - Python
