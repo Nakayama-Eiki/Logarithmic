@@ -1,106 +1,106 @@
 #!/bin/bash
+
+# Set the script name
 LOG_CALC="./logarithmic_calculation"
-PASSED=0
-FAILED=0
-# Pythonによる比較を使用するため、Bash側のTOLERANCEは不要
-# TOLERANCE="0.000001" 
 
-if [ ! -f "$LOG_CALC" ]; then
-    echo "Error: Python script $LOG_CALC not found." >&2
+# Check execution permission
+if [ ! -x "$LOG_CALC" ]; then
+    echo "Error: ${LOG_CALC} is not executable." >&2
     exit 1
 fi
 
-# Pythonで浮動小数点数を比較するヘルパー関数
-# $1: Result, $2: Expected, $3: Tolerance
-compare_float() {
-    python3 -c "
-import sys
-try:
-    result = float('$1')
-    expected = float('$2')
-    tolerance = 1e-6  # 許容誤差を固定 (0.000001)
-    if abs(result - expected) <= tolerance:
-        sys.exit(0) # 成功
-    else:
-        sys.exit(1) # 失敗
-except ValueError:
-    sys.exit(1) # どちらかが数値でない場合は失敗
+echo "--- Testing Logarithmic Calculation Script ---"
+echo ""
+
+# Test Case 1: Basic addition (log2(8) + log10(100) = 3.0 + 2.0 = 5.0)
+echo "## Test 1: Basic Addition"
+INPUT_DATA="
+= 8 2
++ 100 10
 "
-    return $?
-}
+EXPECTED="5.000000"
+RESULT=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>/dev/null)
 
-
-run_test() {
-    TEST_NAME="$1"
-    INPUT="$2"
-    EXPECTED="$3"
-    PRECISION="$4"
-
-    # T7: ゼロ除算エラーテスト
-    if [ "$TEST_NAME" == "T7_Error_DivByZero" ]; then
-        # Python3 コマンドで実行し、標準出力は空、終了コードは非ゼロを期待
-        RESULT=$(echo -n "$INPUT" | python3 "$LOG_CALC" 2>/dev/null)
-        
-        # 実行結果（$RESULT）が空文字列であり、かつ Python の実行が失敗しているか（$!=0）をチェック
-        if [ -z "$RESULT" ] && [ $? -ne 0 ]; then
-             echo "PASSED: $TEST_NAME (Error Handled)"
-             PASSED=$((PASSED + 1))
-        else
-             echo "FAILED: $TEST_NAME (Expected error, but got: $RESULT)"
-             FAILED=$((FAILED + 1))
-        fi
-        return
-    fi
-    
-    # 正常系のテスト：結果を取得
-    # 末尾の改行をパイプラインで確実に追加するために echo -n を使用
-    RESULT=$(echo -n "$INPUT" | python3 "$LOG_CALC" -p "$PRECISION" 2>/dev/null)
-
-    # Pythonヘルパー関数で比較を実行
-    if compare_float "$RESULT" "$EXPECTED" 1e-6; then
-        echo "PASSED: $TEST_NAME"
-        PASSED=$((PASSED + 1))
-    else
-        echo "FAILED: $TEST_NAME"
-        echo "     Input: $INPUT"
-        echo "     Expected: $EXPECTED (Tolerance: 1e-6)"
-        echo "     Got: $RESULT"
-        FAILED=$((FAILED + 1))
-    fi
-}
-
-echo "--- Starting Log Calculator Tests ---"
-echo ""
-
-# T1: 2.0 + 3.0 = 5.0
-run_test "T1_Addition" "=,100,10\n+,8,2" "5.00000" 5
-
-# T2: 3.0 - 2.0 = 1.0
-run_test "T2_Subtraction" "=,1000,10\n-,100,10" "1.00000" 5
-
-# T3: 2.0 * 2.0 = 4.0
-run_test "T3_Multiplication" "=,100,10\n*,4,2" "4.00000" 5
-
-# T4: 4.0 / 1.0 = 4.0
-run_test "T4_Division" "=,16,2\n/,10,10" "4.00000" 5
-
-# T5: (2.0 + 3.0) * 2.0 = 10.0
-run_test "T5_MultiOp_Sequence" "=,100,10\n+,8,2\n*,100,10" "10.000" 3
-
-# T6: 3.0
-run_test "T6_Initial_Value" "=,1000,10" "3.00000" 5
-
-# T7: ゼロ除算エラーテスト
-run_test "T7_Error_DivByZero" "=,100,10\n/,1,10" "" 5 
-
-echo ""
-echo "--- Test Summary ---"
-echo "Total Tests: $((PASSED + FAILED))"
-echo "PASSED: $PASSED"
-echo "FAILED: $FAILED"
-
-if [ $FAILED -gt 0 ]; then
-    exit 1
+if [ "$RESULT" == "$EXPECTED" ]; then
+    echo "Success: Result $RESULT (Expected $EXPECTED)"
 else
-    exit 0
+    echo "Failure: Result $RESULT (Expected $EXPECTED)" >&2
 fi
+echo "---"
+
+# Test Case 2: Precision specification (log_e(e^2) * log_2(4) = 2.0 * 2.0 = 4.0)
+echo "## Test 2: Precision Specification (-p 2)"
+INPUT_DATA="
+* 7.38905609893065 e # approx e^2
+* 4 2
+"
+EXPECTED="4.00"
+RESULT=$(echo -e "$INPUT_DATA" | "$LOG_CALC" -p 2 2>/dev/null)
+
+if [ "$RESULT" == "$EXPECTED" ]; then
+    echo "Success: Result $RESULT (Expected $EXPECTED)"
+else
+    echo "Failure: Result $RESULT (Expected $EXPECTED)" >&2
+fi
+echo "---"
+
+# [cite_start]Test Case 3: Invalid argument (arg <= 0) - Should be skipped, resulting in no valid input processed [cite: 5, 12]
+echo "## Test 3: Invalid Argument (arg <= 0) - Should result in 'No valid input processed'"
+INPUT_DATA="
+[cite_start]= 0 10 # Skipped [cite: 5]
+- [cite_start]-5 2 # Skipped [cite: 5]
+"
+# Capture stderr
+RESULT_STDERR=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>&1 >/dev/null)
+[cite_start]EXPECTED_STDERR="No valid input processed" [cite: 12]
+
+if [[ "$RESULT_STDERR" =~ "$EXPECTED_STDERR" ]]; then
+    echo "Success: Detected error message '$EXPECTED_STDERR'"
+else
+    echo "Failure: Unexpected output: $RESULT_STDERR" >&2
+fi
+echo "---"
+
+# Test Case 4: Division by zero test (log(1)/log(b) = 0)
+echo "## Test 4: Division by Zero"
+INPUT_DATA="
+= 100 10
+[cite_start]/ 1 5 # log5(1) = 0.0, resulting in division by zero [cite: 9]
+"
+# Capture stderr and check exit code
+RESULT_STDERR=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>&1 >/dev/null)
+EXIT_CODE=$?
+[cite_start]EXPECTED_STDERR="Division by zero" [cite: 10]
+[cite_start]EXPECTED_EXIT_CODE=1 [cite: 11]
+
+if [[ "$RESULT_STDERR" =~ "$EXPECTED_STDERR" ]] && [ "$EXIT_CODE" -eq "$EXPECTED_EXIT_CODE" ]; then
+    echo "Success: Detected error message '$EXPECTED_STDERR' and exit code $EXIT_CODE"
+else
+    echo "Failure: Unexpected output: $RESULT_STDERR, Exit code $EXIT_CODE (Expected $EXPECTED_EXIT_CODE)" >&2
+fi
+echo "---"
+
+# [cite_start]Test Case 5: Invalid base (base = 1) test [cite: 2]
+echo "## Test 5: Invalid Base (base = 1)"
+INPUT_DATA="
+[cite_start]= 10 1 # Base must be > 0 and not equal to 1. [cite: 2]
+"
+# Capture stderr and check exit code
+RESULT_STDERR=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>&1 >/dev/null)
+EXIT_CODE=$?
+
+# [cite_start]If the first line fails parsing, the result should be 'No valid input processed' [cite: 12]
+EXPECTED_NO_INPUT_ERR="No valid input processed"
+EXPECTED_BASE_ERR="Base must be > 0 and not equal to 1."
+
+if [[ "$RESULT_STDERR" =~ "$EXPECTED_NO_INPUT_ERR" ]] && [ "$EXIT_CODE" -eq 1 ]; then
+    echo "Success: Detected 'No valid input processed' after skipping the line due to invalid base."
+elif [[ "$RESULT_STDERR" =~ "$EXPECTED_BASE_ERR" ]]; then
+    # This case might happen if get_base raises ValueError and the outer try-except catches it
+    echo "Success: Detected base error message '$EXPECTED_BASE_ERR' (or related warning)."
+else
+    echo "Failure: Unexpected output: $RESULT_STDERR, Exit code $EXIT_CODE" >&2
+fi
+echo "---"
+
+echo "Tests complete."

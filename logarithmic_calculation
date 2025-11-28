@@ -7,51 +7,91 @@ import math
 import argparse
 
 def get_base(s):
+    # 'e' is case-insensitive
     if s.lower() == 'e': return math.e
-    v = float(s)
-    if v <= 0 or v == 1: raise ValueError("Base invalid.")
+    
+    # Try converting to float
+    try:
+        v = float(s)
+    except ValueError:
+        # Re-raise with context if conversion fails for non-'e' string
+        raise ValueError(f"Invalid base format: {s}")
+
+    # Check base validity
+    if v <= 0 or v == 1: raise ValueError("Base must be > 0 and not equal to 1.")
     return v
 
 def main():
+    # Set up argument parser
     p = argparse.ArgumentParser(description='Multi-operator log calculator.', epilog='Format: OP,ARG,BASE')
     p.add_argument('-p', '--precision', type=int, default=6, help='Decimal precision.')
     
-
+    # Placeholder argument to prevent argparse from eating stdin content when reading piped input
     p.add_argument('UNUSED', nargs='?', help='Placeholder.') 
     
     args = p.parse_args()
     
     res = None
     
+    # Process input from stdin line by line
     for line in sys.stdin:
+        # Normalize separators (comma or space) and split
         parts = line.strip().replace(',', ' ').split()
+        
+        # Skip lines that don't have exactly 3 parts
         if len(parts) != 3: continue 
         
         try:
-            op, arg, base = parts[0], float(parts[1]), get_base(parts[2])
+            op, arg_str, base_str = parts[0], parts[1], parts[2]
             
+            # Convert argument and base, which might raise ValueError
+            arg = float(arg_str)
+            base = get_base(base_str)
+            
+            # Logarithm argument must be positive
             if arg <= 0: continue
             
+            # Calculate the logarithm: log_base(arg) = ln(arg) / ln(base)
             log_val = math.log(arg) / math.log(base)
             
+            # Initialization
             if res is None:
-                if op not in ('=', '+', '-'): op = '='
+                # If first line, initialize result with the value.
+                # If the operator is not recognized, treat it as assignment ('=')
+                if op not in ('=', '+', '-'): 
+                    op = '='
                 res = log_val
                 continue
             
-            if op == '+': res += log_val
-            elif op == '-': res -= log_val
-            elif op == '*': res *= log_val
+            # Perform calculation
+            if op == '+': 
+                res += log_val
+            elif op == '-': 
+                res -= log_val
+            elif op == '*': 
+                res *= log_val
             elif op == '/':
-                if log_val == 0: sys.stderr.write("Error: Division by zero.\n"); sys.exit(1)
+                if log_val == 0: 
+                    # FIX: sys.stderr.flush()を追加して、出力を確定させる
+                    # メッセージを 'Division by zero' に変更 (テストが 'Division by zero' を期待するため)
+                    sys.stderr.write("Division by zero\n"); 
+                    sys.stderr.flush()
+                    sys.exit(1)
                 res /= log_val
+            # Unknown operators for subsequent lines are ignored, continuing the loop
             
-        
         except (ValueError, IndexError) as e:
-            sys.stderr.write(f"[Warning] Skipped: {e}\n")
+            # Catch parsing errors or invalid base/arg errors (other than arg <= 0)
+            sys.stderr.write(f"[Warning] Skipped line: {e}\n")
 
-    if res is None: sys.stderr.write("Error: No input.\n"); sys.exit(1)
+    # Final error check
+    if res is None: 
+        # FIX: メッセージを 'No valid input processed' に変更 (テストが 'No valid input processed' を期待するため)
+        sys.stderr.write("No valid input processed\n"); 
+        sys.stderr.flush()
+        sys.exit(1)
 
+    # Print the final result formatted to the requested precision
     print(f"{res:.{args.precision}f}")
 
 if __name__ == "__main__":
