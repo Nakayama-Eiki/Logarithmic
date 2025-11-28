@@ -4,7 +4,7 @@
 
 ![test](https://github.com/Nakayama-Eiki/Logarithmic/actions/workflows/test.yml/badge.svg)
 
-*標準入力*から*対数同士*の*四則演算*が可能です．
+標準入力から対数同士の四則演算が可能です．
 
 ## *使い方例*
 ```
@@ -14,6 +14,11 @@ $chmod +x logarithmic_calculation
 
 $echo -e "演算子,真数,底\n演算子,真数,底\n..." | ./log_calc -p 桁数
 ```
+## *使用の際の注意点*
+- 入力する真数と底の中に演算子は入れないでください
+- デフォルトで出力される桁数は小数第6位までです。 
+
+
 ## *必要なソフトウェア*
 - Python
   - テスト済みバージョン: 3.7〜3.10
