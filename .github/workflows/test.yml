@@ -1,12 +1,31 @@
-name: test
-on: push
+name: Run Log Calculator Tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
     steps:
-    - uses: actions/checkout@v3
-    - name: ALL test
-      run: bash -xv ./test.bash
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Make scripts executable
+        run: |
+          chmod +x logarithmic_calculation
+          chmod +x test.bash
+
+      - name: Run test suite
+        run: ./test.bash
