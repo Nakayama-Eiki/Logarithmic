@@ -3,7 +3,8 @@
 
 
 ![test](https://github.com/Nakayama-Eiki/Logarithmic/actions/workflows/test.yml/badge.svg)
-##説明
+
+## 説明
 
 常用対数の範囲を指定して棒グラフとして出力するコマンドです．
 
