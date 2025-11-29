@@ -4,135 +4,24 @@
 
 import sys
 import math
-import argparse
 
-# --- Utility Functions ---
+#ループ
+for line in sys.stdin:
 
-def parse_and_calculate(s, is_base=False):
-    """
-    Parses a string s. If it contains '^', calculates the power.
-    If it represents a standard float, returns the float value.
-    Raises ValueError if the format is invalid or if base constraints are violated.
-    """
-    # 1. Check for standard float conversion
     try:
-        v = float(s)
+
+        n = float(line.strip())
+
+        if n < 1:
+            continue
+
+        lognovalue = math.log10(n)
+
+        
+        length = int(lognovalue * 20) 
+
+        print(f"{n:7.2f} | {lognovalue:6.6f} | {'0' * length}")
+
     except ValueError:
-        # 2. If float conversion fails, check for power format (X^Y)
-        if '^' in s:
-            parts = s.split('^', 1)
-            if len(parts) == 2:
-                try:
-                    base_val = float(parts[0])
-                    exponent_val = float(parts[1])
-                    v = base_val ** exponent_val
-                except ValueError:
-                    # Power calculation failed (e.g., '10^a' or 'b^2')
-                    raise ValueError(f"Invalid number or power format: {s}")
-            else:
-                # Should not happen if '^' is in s, but as a safeguard
-                raise ValueError(f"Invalid input format: {s}")
-        elif s.lower() == 'e' and is_base:
-            # Handle 'e' specifically for base argument
-            v = math.e
-        else:
-            # Not a float, not a power, and not 'e' (if checking base)
-            raise ValueError(f"Invalid number format: {s}")
-    
-    # 3. Check base validity (if this value is intended as a base)
-    if is_base:
-        if v <= 0 or v == 1: 
-            raise ValueError("Base must be > 0 and not equal to 1.")
-            
-    return v
-
-def get_base(s):
-    """
-    Wrapper for parse_and_calculate for base string.
-    """
-    return parse_and_calculate(s, is_base=True)
-
-# --- Main Logic ---
-
-def main():
-    # Set up argument parser
-    p = argparse.ArgumentParser(description='Multi-operator log calculator.', epilog='Format: OP,ARG,BASE')
-    p.add_argument('-p', '--precision', type=int, default=6, help='Decimal precision.')
-    
-    # Placeholder argument to prevent argparse from eating stdin content when reading piped input
-    p.add_argument('UNUSED', nargs='?', help='Placeholder.') 
-    
-    args = p.parse_args()
-    
-    res = None
-    
-    # Define valid operators for initialization check. Added '^'.
-    VALID_OPS = ('=', '+', '-', '*', '/', '^')
-    
-    # Process input from stdin line by line
-    for line in sys.stdin:
-        # 1. Remove comments (# and everything after it)
-        if '#' in line:
-            line = line.split('#', 1)[0]
         
-        # Normalize separators (comma or space) and split
-        parts = line.strip().replace(',', ' ').split()
-        
-        # Skip lines that don't have exactly 3 parts
-        if len(parts) != 3: continue 
-        
-        try:
-            op, arg_str, base_str = parts[0], parts[1], parts[2]
-            
-            # Use the new function to parse and calculate power for arg and base
-            arg = parse_and_calculate(arg_str, is_base=False)
-            base = get_base(base_str)
-            
-            # Logarithm argument must be positive
-            if arg <= 0: continue
-            
-            # Calculate the logarithm: log_base(arg) = ln(arg) / ln(base)
-            log_val = math.log(arg) / math.log(base)
-            
-            # Initialization
-            if res is None:
-                # If first line, initialize result with the value.
-                # If the operator is not recognized, treat it as assignment ('=')
-                if op not in VALID_OPS: 
-                    op = '='
-                res = log_val
-                continue
-            
-            # Perform calculation
-            if op == '+': 
-                res += log_val
-            elif op == '-': 
-                res -= log_val
-            elif op == '*': 
-                res *= log_val
-            elif op == '/':
-                if log_val == 0: 
-                    sys.stderr.write("Division by zero\n"); 
-                    sys.stderr.flush()
-                    sys.exit(1)
-                res /= log_val
-            # Power operator: Current result raised to the power of the calculated logarithm (log_val)
-            elif op == '^':
-                res = res ** log_val
-            # Unknown operators for subsequent lines are ignored, continuing the loop
-            
-        except (ValueError, IndexError) as e:
-            # Catch parsing errors or invalid base/arg errors
-            sys.stderr.write(f"[Warning] Skipped line due to error: {e}\n")
-
-    # Final error check
-    if res is None: 
-        sys.stderr.write("No valid input processed\n"); 
-        sys.stderr.flush()
-        sys.exit(1)
-
-    # Print the final result formatted to the requested precision
-    print(f"{res:.{args.precision}f}")
-
-if __name__ == "__main__":
-    main()
+        continue

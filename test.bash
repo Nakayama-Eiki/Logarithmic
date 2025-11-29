@@ -1,109 +1,82 @@
-# Set the script name
-# SPDX-FileCopyrightText: 2025 Eiki Nakayama <qwertyuiop1103566@gmail.com>
-# SPDX-License-Identifier: GPL-3.0-only
+#!/bin/bash -x
+#
+
+ng () {
+        echo "${1}行目が違うよ: 想定と異なる結果が出力されました"
+        res=1
+}
+
+res=0 # 全体結果 (0=OK, 1=NG)
+SCRIPT="./logarithmic_calculation"
+
+# --- 1. 正常系のテスト (n > 1.0) ---
+##1-1
+# log10(10) = 1.0
+# length = int(1.0 * 20) = 20
+EXPECTED="  10.00 | 1.000000 | 00000000000000000000"
+out=$(echo 10 | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "$EXPECTED" ] || ng "$LINENO"
+
+##1-2
+# log10(1) = 0.0
+# length = int(0.0 * 20) = 0
+EXPECTED="   1.00 | 0.000000 | "
+out=$(echo 1 | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "$EXPECTED" ] || ng "$LINENO"
+
+##1-3
+# log10(1000) = 3.0
+# length = int(3.0 * 20) = 60
+EXPECTED="1000.00 | 3.000000 | 000000000000000000000000000000000000000000000000000000000000"
+out=$(echo 1000 | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "$EXPECTED" ] || ng "$LINENO"
+
+##1-4
+EXPECTED_MULTI=$(cat <<EOF
+   2.00 | 0.301030 | 000000
+ 100.00 | 2.000000 | 0000000000000000000000000000000000000000
+   5.00 | 0.698970 | 0000000000000
+EOF
+)
+out=$(echo -e "2\n100\n5" | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "$EXPECTED_MULTI" ] || ng "$LINENO"
+
+#--- 2. 境界値・例外系のテスト ---
+##2-1
+out=$(echo 0.5 | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "" ] || ng "$LINENO"
+
+##2-2
+out=$(echo -5 | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "" ] || ng "$LINENO"
+
+##2-3
+out=$(echo "abc" | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO" 
+[ "${out}" = "" ] || ng "$LINENO"
+
+##2-4
+out=$(echo "" | "$SCRIPT")
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "" ] || ng "$LINENO"
+
+##2-5
+out=$("$SCRIPT" < /dev/null)
+[ "$?" -eq 0 ] || ng "$LINENO"
+[ "${out}" = "" ] || ng "$LINENO"
 
 
-LOG_CALC="./logarithmic_calculation"
-
-# Check execution permission
-if [ ! -x "$LOG_CALC" ]; then
-    echo "Error: ${LOG_CALC} is not executable." >&2 [cite: 19, 20]
-    exit 1
-fi
-
-echo "--- Testing Logarithmic Calculation Script ---"
-echo ""
-
-# Test Case 1: Basic addition (log2(8) + log10(100) = 3.0 + 2.0 = 5.0)
-echo "## Test 1: Basic Addition"
-INPUT_DATA="
-= 8 2
-+ 100 10
-"
-EXPECTED="5.000000"
-# 2>/dev/null は stderr を破棄
-RESULT=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>/dev/null)
-
-if [ "$RESULT" == "$EXPECTED" ]; then [cite: 21]
-    echo "Success: Result $RESULT (Expected $EXPECTED)"
+# --- final_result ---
+if [ "${res}" -eq 0 ]; then
+    echo "OK"
 else
-    echo "Failure: Result $RESULT (Expected $EXPECTED)" >&2
+    echo "NG"
 fi
-echo "---"
 
-
-
-# Test Case 2: Invalid argument (arg <= 0) - Should be skipped, resulting in no valid input processed 
-echo "## Test 2: Invalid Argument (arg <= 0) - Should result in 'No valid input processed'"
-INPUT_DATA="
-= 0 10 
-- -5 2 
-"
-# Capture stderr
-RESULT_STDERR=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>&1 >/dev/null)
-EXPECTED_STDERR="No valid input processed" 
-
-if [[ "$RESULT_STDERR" =~ "$EXPECTED_STDERR" ]]; then [cite: 24]
-    echo "Success: Detected error message '$EXPECTED_STDERR'"
-else
-    echo "Failure: Unexpected output: $RESULT_STDERR" >&2
-fi
-echo "---"
-
-# Test Case 3: Division by zero test (log(1)/log(b) = 0)
-echo "## Test 3: Division by Zero"
-INPUT_DATA="
-= 100 10
-/ 1 5 # log5(1) = 0.0, resulting in division by zero
-"
-# Capture stderr and check exit code
-RESULT_STDERR=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>&1 >/dev/null)
-EXIT_CODE=$?
-EXPECTED_STDERR="Division by zero"
-EXPECTED_EXIT_CODE=1
-
-if [[ "$RESULT_STDERR" =~ "$EXPECTED_STDERR" ]] && [ "$EXIT_CODE" -eq "$EXPECTED_EXIT_CODE" ]; then [cite: 25, 26]
-    echo "Success: Detected error message '$EXPECTED_STDERR' and exit code $EXIT_CODE"
-else
-    echo "Failure: Unexpected output: $RESULT_STDERR, Exit code $EXIT_CODE (Expected $EXPECTED_EXIT_CODE)" >&2
-fi
-echo "---"
-
-# Test Case 4: Invalid base (base = 1) test
-echo "## Test 4: Invalid Base (base = 1)"
-INPUT_DATA="
-= 10 1 # Base must be > 0 and not equal to 1.
-"
-# Capture stderr and check exit code
-RESULT_STDERR=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>&1 >/dev/null)
-EXIT_CODE=$?
-# 最初の行で無効な基数エラーが発生し、行がスキップされ、結果として有効な入力がない状態になる [cite: 6, 16, 17]
-EXPECTED_NO_INPUT_ERR="No valid input processed"
-EXPECTED_EXIT_CODE=1
-
-if [[ "$RESULT_STDERR" =~ "$EXPECTED_NO_INPUT_ERR" ]] && [ "$EXIT_CODE" -eq "$EXPECTED_EXIT_CODE" ]; then [cite: 28, 29]
-    echo "Success: Detected '$EXPECTED_NO_INPUT_ERR' and exit code $EXPECTED_EXIT_CODE."
-else
-    echo "Failure: Unexpected output: $RESULT_STDERR, Exit code $EXIT_CODE (Expected $EXPECTED_EXIT_CODE)" >&2
-fi
-echo "---"
-
-# Test Case 5: Power calculation (log2(16) ^ log10(100) = 4^2 = 16.0)
-echo "## Test 5: Power Calculation (^)"
-INPUT_DATA="
-= 16 2 # log2(16) = 4
-^ 100 10 # log10(100) = 2
-"
-EXPECTED="16.000000"
-RESULT=$(echo -e "$INPUT_DATA" | "$LOG_CALC" 2>/dev/null)
-
-if [ "$RESULT" == "$EXPECTED" ]; then
-    echo "Success: Result $RESULT (Expected $EXPECTED)"
-else
-    echo "Failure: Result $RESULT (Expected $EXPECTED)" >&2
-fi
-echo "---"
-
-
-
-echo "Tests complete."
+exit "$res"
