@@ -3,6 +3,7 @@
 
 
 ![test](https://github.com/Nakayama-Eiki/Logarithmic/actions/workflows/test.yml/badge.svg)
+##説明
 
 常用対数の範囲を指定して棒グラフとして出力するコマンドです．
 
@@ -27,7 +28,6 @@ $seq 1 0.5 5 | ./logarithmic_calculation
    4.50 | 0.653213 | 0000000000000
    5.00 | 0.698970 | 0000000000000
 ```
-## *使用の際の注意点*
 
 ## *必要なソフトウェア*
 - Python
@@ -35,9 +35,7 @@ $seq 1 0.5 5 | ./logarithmic_calculation
 
 ## *テスト環境*
 - Ubuntu 24.04 LTS
-
-このソフトウェアパッケージは，GPL3.0にコピーの下，再頒布および使用が許可されます．
-- このパッケージは，Ryuichi Uedaのスライド由来のコード（© 2025 Ryuichi Ueda）を利用しています．
-- このパッケージのコードは，下記のスライド（CC-BY-SA 4.0 by Ryuichi Ueda）のものを，本人の許可を得て，24C1130 山下正悟に不具合を伝え助言をもらいながら自身の著作としたものです。
-    - [ryuichiueda/my_slides robosys_2025](https://github.com/ryuichiueda/slides_marp/tree/master/robosys2025)
+##*著作権*
+- このソフトウェアパッケージは，GPL3.0にコピーの下，再頒布および使用が許可されます．
+- このパッケージのコードは，24C1130 山下正悟に不具合を伝え助言をもらいながら自身の著作としたものです。
 - © 2025 Eiki Nakayama:
