@@ -29,7 +29,7 @@ EXPECTED_MULTI=$(cat <<EOF
    5.00 | 0.698970 | 0000000000000
 EOF
 )
-out=$(echo -e "2\n100\n5" | "$SCRIPT")
+out=$(printf "2\n100\n5\n" | "$SCRIPT")
 [ "$?" -eq 0 ] || ng "$LINENO"
 [ "${out}" = "$EXPECTED_MULTI" ] || ng "$LINENO"
 
