@@ -35,9 +35,9 @@ $seq 1 0.5 5 | ./logarithmic_calculation
   - テスト済みバージョン: 3.7〜3.10
 
 ## *テスト環境*
-- Ubuntu 22.04 LTS
+- Ubuntu 22.04 LTS(GitHub Actions / Remote Environment)
 
 ## *著作権*
-- このソフトウェアパッケージは，GPL3.0にコピーの下，再頒布および使用が許可されます．
+- このソフトウェアパッケージは，GNU General Public License v3.0 (GPL-3.0) のもとで公開されています。
 - このパッケージのコードは，24C1130 山下正悟に不具合を伝え助言をもらいながら自身の著作としたものです。
-- © 2025 Eiki Nakayama:
+- © 2025 Eiki Nakayama

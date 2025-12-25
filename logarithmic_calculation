@@ -1,27 +1,36 @@
 #!/usr/bin/python3
 # SPDX-FileCopyrightText: 2025 Eiki Nakayama <qwertyuiop1103566@gmail.com>
 # SPDX-License-Identifier: GPL-3.0-only
-
 import sys
 import math
 
-#ループ
-for line in sys.stdin:
+def main():
+    has_error = False
+    for line in sys.stdin:
+        try:
+            line_content = line.strip()
+            if not line_content:
+                continue
+            
+            n = float(line_content)
+            if n < 1:
+            
+                print(f"Error: Invalid input {n}. Must be >= 1", file=sys.stderr)
+                has_error = True
+                continue
 
-    try:
+            lognovalue = math.log10(n)
+            length = int(lognovalue * 20)
+            print(f"{n:7.2f} | {lognovalue:6.6f} | {'0' * length}")
 
-        n = float(line.strip())
-
-        if n < 1:
+        except ValueError:
+            print(f"Error: '{line.strip()}' is not a number", file=sys.stderr)
+            has_error = True
             continue
 
-        lognovalue = math.log10(n)
+    if has_error:
+        sys.exit(1)
 
+if __name__ == "__main__":
+    main()
         
-        length = int(lognovalue * 20) 
-
-        print(f"{n:7.2f} | {lognovalue:6.6f} | {'0' * length}")
-
-    except ValueError:
-        
-        continue
